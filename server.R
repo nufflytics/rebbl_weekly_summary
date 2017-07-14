@@ -12,6 +12,7 @@ library(tidyverse)
 library(magrittr)
 library(nufflytics)
 library(knitr)
+library(purrrlyr)
 
 shinyServer(function(input, output, session) {
   rebbl_data <- read_csv("data/rebbl_data.csv")
@@ -43,16 +44,15 @@ shinyServer(function(input, output, session) {
     league <- input$league
     division <- input$division
     if (league == "BigO") {
-      if (division < 3 ) updateSelectInput(session, "week", choices = 1:11, selected = input$week)
+      if (division < 3 ) updateSelectInput(session, "week", choices = c("Select Week"="", 1:11), selected = input$week)
     }
   })
   
   weeks_games <- reactive({
     if(input$league == "" | input$division == "" | input$week == "") return(NULL)
     rebbl_data %>% 
-      filter(league == input$league, comp == paste0("Season 6 Div ",input$division), round == input$week, ID > 0) %>%
-      mutate(V = "-") %>% 
-      select(h_coach, h_team, h_score, V, a_score, a_team, a_coach, uuid)
+      filter(league == input$league, comp == paste0("Season 6 Div ",input$division), round == as.numeric(input$week), ID > 0) %>%
+      use_series(uuid)
   })
   
   summarise_match <- function(uuid) {
@@ -116,8 +116,56 @@ shinyServer(function(input, output, session) {
       HTML
   }
   
-  format_injuries <- function(injuries, h_team, a_team) {
+  format_player_injury <- function(player_data) {
+    get_old_perms <- function(new_injuries, injury_list) {
+      #vectorise the new injuries for rotters, etc
+      new_injuries %<>% str_split(", ", simplify = T) %>% as.vector
+      #remove new_injuries from permanent list
+      for (inj in new_injuries) {
+        injury_list %<>% str_replace(inj, "")
+      }
+      
+      #Deal with errant commas from removed terms
+      injury_list %>% 
+        str_replace_all("^, *", "") %>% 
+        str_replace_all(", , ", ", ") %>% 
+        str_replace(", *$", "")
+    }
+  
+    div(
+      p(strong(player_data["name"]), em(paste0("(",player_data["type"],")")), ,strong(player_data['injuries'])),
+      p(player_data["skills"], em(get_old_perms(player_data['injuries'], player_data['perms'])))
+    )
+  }
+  
+  format_injuries <- function(inj, h_team, a_team) {
+    ret = NULL
+
+    if (nrow(inj[["home"]]) > 0) {
+      ret = str_c(
+        ret,
+        inj[["home"]] %>% 
+          by_row(format_player_injury, .to = "out") %>% 
+          use_series("out") %>% 
+          map_chr(as.character) %>% 
+          str_c(collapse="")
+      )
+    }
+    if (nrow(inj[['away']]) > 0) {
+      ret = str_c(
+        ret,
+        inj[["away"]] %>% 
+          by_row(format_player_injury, .to = "out") %>% 
+          use_series("out") %>% 
+          map_chr(as.character) %>% 
+          str_c(collapse="")
+      )
+    }
     
+    if(is.null(ret)) return(NULL)
+    ret %>% 
+      str_c(collapse = "") %>% 
+      HTML
   }
   
   format_match <- function(summary) {
@@ -126,9 +174,9 @@ shinyServer(function(input, output, session) {
     title <- paste0(summary$home, " / ", summary$away)
     
     body <- fluidRow(
-      column(2, format_stats(summary$stats, summary$home, summary$away)),
-      column(5, HTML(knitr::kable(summary$injuries %>% bind_rows(.id = "team"), format="html"))),
-      column(5, HTML(knitr::kable(summary$level_ups %>% bind_rows(.id = "team"), format="html")))
+      column(2, h4("Stats"),format_stats(summary$stats, summary$home, summary$away)),
+      column(5, h4("Injuries"),format_injuries(summary$injuries, summary$home, summary$away)),
+      column(5, h4("Development"), HTML(knitr::kable(summary$level_ups %>% bind_rows(.id = "team"), format="html")))
     )
     match <- sprintf('<div class="panel panel-default">
     <div class="panel-heading">
@@ -141,12 +189,22 @@ shinyServer(function(input, output, session) {
     match
   }
   
+  #Calculate standing up to the selected week
   standings <- reactive({
     if(input$league == "" | input$division == "" | input$week == "") return(NULL)
     
-    rebbl_data %>% 
-      filter(league == input$league, comp == paste0("Season 6 Div ",input$division), round <= input$week) %>% 
-      mutate(home_result = case_when(.$h_score>.$a_score~"Win",.$h_score==.$a_score~"Tie", .$h_score<.$a_score ~"Loss" )) %>% 
+    subset_data <- rebbl_data %>% 
+      filter(
+        league == input$league, 
+        comp == paste0("Season 6 Div ",input$division), 
+        round <= as.numeric(input$week),
+        ID > 0
+      ) %>% 
+      mutate(home_result = case_when(
+        .$h_score>.$a_score~"Win",
+        .$h_score==.$a_score~"Tie", 
+        .$h_score<.$a_score ~"Loss" )
+      ) %>% 
       select(h_team, a_team, home_result) %>% 
       gather(team, name, -home_result) %>% 
       group_by(name) %>% 
@@ -161,6 +219,6 @@ shinyServer(function(input, output, session) {
   
   output$summary <- renderTable(weeks_games())
   output$standings <- renderTable(standings())
-  output$game_summary <- renderUI(HTML(summarise_match(weeks_games()[1,"uuid"]) %>% format_match()))
+  output$game_summary <- renderUI(HTML( map_chr(weeks_games(), ~summarise_match(.) %>% format_match()) ))
   
 })  
