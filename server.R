@@ -13,6 +13,7 @@ library(magrittr)
 library(nufflytics)
 library(knitr)
 library(purrrlyr)
+library(stringr)
 
 shinyServer(function(input, output, session) {
   rebbl_data <- read_csv("data/rebbl_data.csv")
