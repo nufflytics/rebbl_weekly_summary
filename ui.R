@@ -19,7 +19,22 @@ shinyUI(fluidPage(
     tags$script(src="js/skel.min.js"),
     tags$script(src="js/util.js"),
     tags$script(src="js/backToTop.js"),
-    tags$script(src="js/main.js")
+    tags$script(src="js/main.js"),
+    tags$style(type="text/css", "
+           #loadmessage {
+               position: fixed;
+               top: 0px;
+               left: 0px;
+               width: 100%;
+               padding: 5px 0px 5px 0px;
+               text-align: center;
+               font-weight: bold;
+               font-size: 100%;
+               color: #000000;
+               background-color: #CCFF66;
+               z-index: 105;
+               }
+               ")
   ),
   
   #nufflytics header
@@ -34,6 +49,8 @@ shinyUI(fluidPage(
     column(3, conditionalPanel("input.league != ''", selectInput("division", "Division", choices = NULL))),
     column(3, conditionalPanel("input.division != ''", selectInput("week", "Week", choices = c("Select Week" = "", 1:13))))
     ),
+  conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                   tags$div("Loading...",id="loadmessage")),
   tableOutput("standings"),
   tableOutput("game_summary")
 
