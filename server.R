@@ -24,7 +24,7 @@ shinyServer(function(input, output, session) {
            "REL"  = list(src = "www/img/REL_s.png", width = 200, height = 200),
            "Gman" = list(src = "www/img/Gman_s.png", width = 200, height = 200),
            "BigO" = list(src = "www/img/BigO_s.png", width = 200, height = 200),
-           list(src = "www/img/REBBL.png", width = 200, height = 200*0.6128)
+           list(src = "www/img/REBBL_s.png", width = 200, height = 200*0.6128)
     )
   },
   deleteFile = FALSE
