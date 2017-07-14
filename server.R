@@ -131,19 +131,19 @@ shinyServer(function(input, output, session) {
         str_replace_all(", , ", ", ") %>% 
         str_replace(", *$", "")
     }
-  
+    
     div(
-      p(strong(player_data["name"]), em(paste0("(",player_data["type"],")")), ,strong(player_data['injuries'])),
+      p(strong(player_data["name"]), em(paste0("(",player_data["type"],")")), " : " ,strong(player_data['injuries'])),
       p(player_data["skills"], em(get_old_perms(player_data['injuries'], player_data['perms'])))
     )
   }
-  
   format_injuries <- function(inj, h_team, a_team) {
     ret = NULL
-
+    
     if (nrow(inj[["home"]]) > 0) {
       ret = str_c(
         ret,
+        h5(h_team) %>% as.character(),
         inj[["home"]] %>% 
           by_row(format_player_injury, .to = "out") %>% 
           use_series("out") %>% 
@@ -154,6 +154,7 @@ shinyServer(function(input, output, session) {
     if (nrow(inj[['away']]) > 0) {
       ret = str_c(
         ret,
+        h5(a_team) %>% as.character(),
         inj[["away"]] %>% 
           by_row(format_player_injury, .to = "out") %>% 
           use_series("out") %>% 
@@ -162,7 +163,45 @@ shinyServer(function(input, output, session) {
       )
     }
     
-    if(is.null(ret)) return(NULL)
+    if(is.null(ret)) return(p("Nil"))
+    ret %>% 
+      str_c(collapse = "") %>% 
+      HTML
+  }
+  
+  format_player_levelup <- function(player_data) {
+    div(
+      p(strong(player_data["name"]), em(paste0("(",player_data["type"],")")), " : " , player_data["SPP"], icon("arrow-right"), player_data['SPP']+player_data["SPP_gain"]),
+      p(player_data["skills"], em(player_data['perms']))
+    )
+  }
+  format_level_ups <- function(lvl_up, h_team, a_team) {
+    ret = NULL
+    
+    if (nrow(lvl_up[["home"]]) > 0) {
+      ret = str_c(
+        ret,
+        h5(h_team) %>% as.character(),
+        lvl_up[["home"]] %>% 
+          by_row(format_player_levelup, .to = "out") %>% 
+          use_series("out") %>% 
+          map_chr(as.character) %>% 
+          str_c(collapse="")
+      )
+    }
+    if (nrow(lvl_up[['away']]) > 0) {
+      ret = str_c(
+        ret,
+        h5(a_team) %>% as.character(),
+        lvl_up[["away"]] %>% 
+          by_row(format_player_levelup, .to = "out") %>% 
+          use_series("out") %>% 
+          map_chr(as.character) %>% 
+          str_c(collapse="")
+      )
+    }
+    
+    if(is.null(ret)) return(p("Nil"))
     ret %>% 
       str_c(collapse = "") %>% 
       HTML
@@ -174,13 +213,13 @@ shinyServer(function(input, output, session) {
     title <- paste0(summary$home, " / ", summary$away)
     
     body <- fluidRow(
-      column(2, h4("Stats"),format_stats(summary$stats, summary$home, summary$away)),
-      column(5, h4("Injuries"),format_injuries(summary$injuries, summary$home, summary$away)),
-      column(5, h4("Development"), HTML(knitr::kable(summary$level_ups %>% bind_rows(.id = "team"), format="html")))
+      column(2, h3("Stats"),format_stats(summary$stats, summary$home, summary$away)),
+      column(5, h3("Injuries"),format_injuries(summary$injuries, summary$home, summary$away)),
+      column(5, h3("Development"), format_level_ups(summary$level_ups, summary$home, summary$away))
     )
     match <- sprintf('<div class="panel panel-default">
     <div class="panel-heading">
-      <h3>%s</h3>
+      <h1>%s</h1>
     </div>
     %s
     </div>', title, body)
@@ -193,7 +232,7 @@ shinyServer(function(input, output, session) {
   standings <- reactive({
     if(input$league == "" | input$division == "" | input$week == "") return(NULL)
     
-    subset_data <- rebbl_data %>% 
+    table <- rebbl_data %>% 
       filter(
         league == input$league, 
         comp == paste0("Season 6 Div ",input$division), 
@@ -213,12 +252,23 @@ shinyServer(function(input, output, session) {
         Draws = sum(home_result == "Tie"), 
         Losses = sum(team == "h_team" & home_result == "Loss", team == "a_team"& home_result == "Win")
       ) %>% 
-      mutate(Points = 3*Wins + Draws) %>% 
-      arrange(desc(Points))
+      mutate(Points = 3*Wins + Draws, Position = min_rank(desc(Points))) %>% 
+      arrange(Position) %>% 
+      knitr::kable(format = "html", col.names = c("Team", "Wins", "Ties", "Losses", "Points", "Position"), escape = F) %>% 
+      as.character()
+    
+    sprintf("<div class='standings table table-condensed table-hover'>
+            <h3>Standings from completed games up to the end of week %s</h3>
+            %s
+            </div>", input$week, table)
   })
   
   output$summary <- renderTable(weeks_games())
-  output$standings <- renderTable(standings())
-  output$game_summary <- renderUI(HTML( map_chr(weeks_games(), ~summarise_match(.) %>% format_match()) ))
+  output$standings <- renderUI(HTML(standings()))
+  output$game_summary <- renderUI({
+    if (is.null(weeks_games())) return(NULL)
+    
+    HTML(map_chr(weeks_games(), ~summarise_match(.) %>% format_match()))
+  })
   
 })  
