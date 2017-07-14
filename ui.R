@@ -21,18 +21,13 @@ shinyUI(fluidPage(
     tags$script(src="js/backToTop.js"),
     tags$script(src="js/main.js"),
     tags$style(type="text/css", "
-           #loadmessage {
-               position: fixed;
-               top: 0px;
-               left: 0px;
-               width: 100%;
-               padding: 5px 0px 5px 0px;
-               text-align: center;
-               font-weight: bold;
-               font-size: 100%;
-               color: #000000;
-               background-color: #CCFF66;
-               z-index: 105;
+               #loading-spinner {
+               position: absolute;
+               left: 50%;
+               top: 50%;
+               z-index: 100;
+               margin-top: -33px;  /* half of the spinner's height */
+               margin-left: -33px; /* half of the spinner's width */
                }
                ")
   ),
@@ -50,7 +45,9 @@ shinyUI(fluidPage(
     column(3, conditionalPanel("input.division != ''", selectInput("week", "Week", choices = c("Select Week" = "", 1:13))))
     ),
   conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                   tags$div("Loading...",id="loadmessage")),
+                   div(id = "loading-spinner",
+                       icon("circle-o-notch",class = "fa-spin fa-5x")
+                   )),
   tableOutput("standings"),
   tableOutput("game_summary")
 
