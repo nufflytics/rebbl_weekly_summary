@@ -209,7 +209,7 @@ shinyServer(function(input, output, session) {
   }
   
   format_match <- function(summary) {
-    if(is.null(summary)) return(NULL)
+    if(is.null(summary)) return("")
     
     title <- paste0(summary$home, " / ", summary$away)
     
