@@ -47,4 +47,10 @@ get_league_data <- function(league_response) {
 #For each league, process the division data into a df and bind them all together
 league_data <- map_df(league_html_response, ~ map_df(.,get_league_data), .id = "league") %>% as_data_frame()
 
+old_data <- read_csv("data/rebbl_data.csv")
+
+new_games = league_data$uuid[!league_data$uuid %in% old_data$uuid]
+
+map(new_games, ~GET(paste0("www.mordrek.com:8888/RequestReplay?uuid=10",.)))
+
 write_csv(league_data, "data/rebbl_data.csv")
