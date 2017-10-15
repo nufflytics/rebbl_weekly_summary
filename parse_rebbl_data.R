@@ -11,7 +11,7 @@ suppressMessages(require(nufflytics))
 data_dir <- commandArgs(trailingOnly = T)[1]
 
 #load webhook info and API calls from file
-load(paste0(data_dir,"/REBBL_parameters.Rda"))
+load(paste0(data_dir,"/RFBBL_parameters.Rda"))
 load(paste0(data_dir,"/api.Rda"))
 
 #Get data for leagues
@@ -49,8 +49,8 @@ league_data <- map_df(league_html_response, ~ map_df(.,get_league_data), .id = "
 
 old_data <- read_csv("data/rebbl_data.csv")
 
-new_games = league_data$uuid[!league_data$uuid %in% old_data$uuid]
+#new_games = league_data$uuid[!league_data$uuid %in% old_data$uuid]
 
-map(new_games, ~GET(paste0("www.mordrek.com:8888/RequestReplay?uuid=10",.)))
+#map(new_games, ~GET(paste0("www.mordrek.com:8888/RequestReplay?uuid=10",.)))
 
 write_csv(league_data, "data/rebbl_data.csv")
