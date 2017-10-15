@@ -34,25 +34,25 @@ shinyServer(function(input, output, session) {
   observe({
     league <- input$league
     switch(league,
-           "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", 1:7)),
-           "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", 1:5)),
-           "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", 1:3)),
+           "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="REL") %>% .$comp %>% unique %>% str_replace_all("Season 7 Div ",""))),
+           "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Gman") %>% .$comp %>% unique %>% str_replace_all("Season 7 Div ",""))),
+           "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="BigO") %>% .$comp %>% unique %>% str_replace_all("Season 7 Div ",""))),
            NULL
     )
   })
   #Update week options based on division
-  observe({
-    league <- input$league
-    division <- input$division
-    if (league == "BigO") {
-      if (division < 3 ) updateSelectInput(session, "week", choices = c("Select Week"="", 1:11), selected = input$week)
-    }
-  })
+  # observe({
+  #   league <- input$league
+  #   division <- input$division
+  #   if (league == "BigO") {
+  #     if (division < 3 ) updateSelectInput(session, "week", choices = c("Select Week"="", 1:11), selected = input$week)
+  #   }
+  # })
   
   weeks_games <- reactive({
     if(input$league == "" | input$division == "" | input$week == "") return(NULL)
     rebbl_data %>% 
-      filter(league == input$league, comp == paste0("Season 6 Div ",input$division), round == as.numeric(input$week), ID > 0) %>%
+      filter(league == input$league, comp == paste0("Season 7 Div ",input$division), round == input$week, ID > 0) %>%
       use_series(uuid)
   })
   
@@ -236,7 +236,7 @@ shinyServer(function(input, output, session) {
     table <- rebbl_data %>% 
       filter(
         league == input$league, 
-        comp == paste0("Season 6 Div ",input$division), 
+        comp == paste0("Season 7 Div ",input$division), 
         round <= as.numeric(input$week),
         ID > 0
       ) %>% 
