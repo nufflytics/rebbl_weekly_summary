@@ -14,8 +14,19 @@ library(nufflytics)
 library(knitr)
 library(purrrlyr)
 library(stringr)
+library(lubridate)
+
+start_time = lubridate::dmy_hm("051017 0000", tz = "UTC")
 
 shinyServer(function(input, output, session) {
+  
+  gameweek = difftime(now("UTC"), start_time, units = "weeks") %>% ceiling()
+  observeEvent(
+    input$division,
+    updateNumericInput(session, "week", value = as.numeric(gameweek)),
+    once = T
+  )
+  
   rebbl_data <- read_csv("data/rebbl_data.csv")
   
   #logo for top left
