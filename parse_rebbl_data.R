@@ -49,7 +49,7 @@ league_data <- map_df(league_html_response, ~ map_df(.,get_league_data), .id = "
 
 #Fix up one game that was adminned accidentally as a draw
 
-league_data %<>% inset2(.$round==3 & .$a_coach=="tself55", a_score, 1)
+league_data %<>% inset2(.$round==3 & .$a_coach=="tself55", "a_score", 1)
 
 # old_data <- read_csv("data/rebbl_data.csv")
 
