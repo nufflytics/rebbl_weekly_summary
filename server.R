@@ -198,7 +198,8 @@ shinyServer(function(input, output, session) {
           by_row(format_player_levelup, .to = "out") %>% 
           use_series("out") %>% 
           map_chr(as.character) %>% 
-          str_c(collapse="")
+          str_c(collapse="") %>% 
+          str_replace_all("NA", "")
       )
     }
     if (nrow(lvl_up[['away']]) > 0) {
@@ -209,7 +210,8 @@ shinyServer(function(input, output, session) {
           by_row(format_player_levelup, .to = "out") %>% 
           use_series("out") %>% 
           map_chr(as.character) %>% 
-          str_c(collapse="")
+          str_c(collapse="")%>% 
+          str_replace_all("NA", "")
       )
     }
     
