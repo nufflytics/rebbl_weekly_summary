@@ -280,7 +280,7 @@ shinyServer(function(input, output, session) {
   output$game_summary <- renderUI({
     if (is.null(weeks_games())) return(NULL)
     
-    withProgress(HTML(map_chr(weeks_games(), ~summarise_match(.) %>% format_match())))
+    HTML(map_chr(weeks_games(), ~summarise_match(.) %>% format_match()))
   })
   
 })  
