@@ -8,11 +8,9 @@ suppressMessages(require(rvest))
 suppressMessages(require(stringr))
 suppressMessages(require(nufflytics))
 
-data_dir <- commandArgs(trailingOnly = T)[1]
-
 #load webhook info and API calls from file
-load(paste0(data_dir,"/RFBBL_parameters.Rda"))
-load(paste0(data_dir,"/api.Rda"))
+load("data/RFBBL_parameters.Rda")
+load("data/api.Rda")
 
 #Get data for leagues
 league_html_response <- map2(league_search_strings, "pc", api_query)
@@ -45,11 +43,7 @@ get_league_data <- function(league_response) {
 }
 
 #For each league, process the division data into a df and bind them all together
-league_data <- map_df(league_html_response, ~ map_df(.,get_league_data), .id = "league") %>% as_data_frame()
-
-#Fix up one game that was adminned accidentally as a draw
-
-league_data %<>% inset2(.$round==3 & .$a_coach=="tself55", "a_score", 1)
+league_data <- map_df(league_html_response, ~ map_df(.,get_league_data), .id = "league") %>% as_data_frame() %>% filter(grepl("Season 8", comp))
 
 # old_data <- read_csv("data/rebbl_data.csv")
 

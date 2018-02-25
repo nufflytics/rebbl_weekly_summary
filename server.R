@@ -16,7 +16,7 @@ library(purrrlyr)
 library(stringr)
 library(lubridate)
 
-start_time = lubridate::dmy_hm("051017 0000", tz = "UTC")
+start_time = lubridate::dmy_hm("210218 0000", tz = "UTC")
 
 shinyServer(function(input, output, session) {
   
@@ -45,9 +45,9 @@ shinyServer(function(input, output, session) {
   observe({
     league <- input$league
     switch(league,
-           "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="REL") %>% .$comp %>% unique %>% str_replace_all("Season 7 Div ",""))),
-           "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Gman") %>% .$comp %>% unique %>% str_replace_all("Season 7 Div ",""))),
-           "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="BigO") %>% .$comp %>% unique %>% str_replace_all("Season 7 Div ",""))),
+           "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="REL") %>% .$comp %>% unique)),
+           "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Gman") %>% .$comp %>% unique)),
+           "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="BigO") %>% .$comp %>% unique)),
            NULL
     )
   })
@@ -63,7 +63,7 @@ shinyServer(function(input, output, session) {
   weeks_games <- reactive({
     if(input$league == "" | input$division == "" | input$week == "") return(NULL)
     rebbl_data %>% 
-      filter(league == input$league, comp == paste0("Season 7 Div ",input$division), round == input$week, ID > 0) %>%
+      filter(league == input$league, comp == input$division, round == input$week, ID > 0) %>%
       use_series(uuid)
   })
   
@@ -247,7 +247,7 @@ shinyServer(function(input, output, session) {
     table <- rebbl_data %>% 
       filter(
         league == input$league, 
-        comp == paste0("Season 7 Div ",input$division), 
+        comp == input$division, 
         round <= as.numeric(input$week),
         ID > 0
       ) %>% 
@@ -280,7 +280,7 @@ shinyServer(function(input, output, session) {
   output$game_summary <- renderUI({
     if (is.null(weeks_games())) return(NULL)
     
-    HTML(map_chr(weeks_games(), ~summarise_match(.) %>% format_match()))
+    withProgress(HTML(map_chr(weeks_games(), ~summarise_match(.) %>% format_match())))
   })
   
 })  
