@@ -45,9 +45,9 @@ shinyServer(function(input, output, session) {
   observe({
     league <- input$league
     switch(league,
-           "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="REL") %>% .$comp %>% unique)),
-           "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Gman") %>% .$comp %>% unique)),
-           "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="BigO") %>% .$comp %>% unique)),
+           "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="REL")  %>% select(comp) %>% unique %>% arrange(str_replace_all(comp, "Season 9 - Division ([0-9]*).","\\1"), str_sub(comp, start = -2, end = -1)) %>% .$comp)),
+           "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Gman")  %>% select(comp) %>% unique %>% arrange(str_replace_all(comp, "Season 9 - Division ([0-9]*).","\\1"), str_sub(comp, start = -2, end = -1)) %>% .$comp)),
+           "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="BigO")  %>% select(comp) %>% unique %>% arrange(str_replace_all(comp, "Season 9 - Division ([0-9]*).","\\1"), str_sub(comp, start = -2, end = -1)) %>% .$comp)),
            NULL
     )
   })
