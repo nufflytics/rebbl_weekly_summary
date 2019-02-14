@@ -40,7 +40,7 @@ shinyUI(fluidPage(
   # Sidebar with a slider input for number of bins
   fluidRow(
     column(3, imageOutput("logo", height = 200)),
-    column(3, selectInput("league", "Competition", choices = c("Select Competition" = "", "REL" , "Gman", "BigO"))),
+    column(3, selectInput("league", "Competition", choices = c("Select Competition" = "", "REL" , "Gman", "BigO", "Playoffs"))),
     column(3, conditionalPanel("input.league != ''", selectInput("division", "Division", choices = NULL))),
     column(3, conditionalPanel("input.division != ''", selectInput("week", "Week", choices = c("Select Week" = "", 1:13))))
     ),

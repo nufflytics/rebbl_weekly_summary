@@ -35,6 +35,7 @@ shinyServer(function(input, output, session) {
            "REL"  = list(src = "www/img/REL_s.png", width = 200, height = 200),
            "Gman" = list(src = "www/img/Gman_s.png", width = 200, height = 200),
            "BigO" = list(src = "www/img/BigO_s.png", width = 200, height = 200),
+           "Playoffs" = list(src = "www/img/REBBL_s.png", width = 200, height = 200*0.6128),
            list(src = "www/img/REBBL_s.png", width = 200, height = 200*0.6128)
     )
   },
@@ -48,6 +49,7 @@ shinyServer(function(input, output, session) {
            "REL"  = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="REL")  %>% select(comp) %>% unique %>% arrange(str_replace_all(comp, "Season 9 - Division ([0-9]*).","\\1"), str_sub(comp, start = -2, end = -1)) %>% .$comp)),
            "Gman" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Gman")  %>% select(comp) %>% unique %>% arrange(str_replace_all(comp, "Season 9 - Division ([0-9]*).","\\1"), str_sub(comp, start = -2, end = -1)) %>% .$comp)),
            "BigO" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="BigO")  %>% select(comp) %>% unique %>% arrange(str_replace_all(comp, "Season 9 - Division ([0-9]*).","\\1"), str_sub(comp, start = -2, end = -1)) %>% .$comp)),
+           "Playoffs" = updateSelectInput(session, "division", choices = c("Select Division" = "", rebbl_data %>% filter(league=="Playoffs")  %>% select(comp) %>% unique %>% .$comp)),
            NULL
     )
   })

@@ -12,6 +12,8 @@ suppressMessages(require(nufflytics))
 load("data/RFBBL_parameters.Rda")
 load("data/api.Rda")
 
+league_search_strings$Playoffs <- "ReBBL+Playoffs"
+
 #Get data for leagues
 league_html_response <- map2(league_search_strings, "pc", api_query)
 
